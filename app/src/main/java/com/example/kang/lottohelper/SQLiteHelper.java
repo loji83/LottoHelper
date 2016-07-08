@@ -191,7 +191,7 @@ public class SQLiteHelper {
         {
             e.printStackTrace();
         }
-
+if(mCursor != null && mCursor.getCount() > 0)
         temp = temp/mCursor.getCount();
         mCursor.close();
 

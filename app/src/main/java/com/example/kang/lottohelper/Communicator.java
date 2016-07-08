@@ -125,6 +125,12 @@ public class Communicator {
             }
         });
         t.start();
+        try {
+            t.join();
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public interface OnCommunicatorListener {

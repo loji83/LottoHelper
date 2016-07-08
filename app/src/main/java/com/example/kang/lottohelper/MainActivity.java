@@ -10,12 +10,17 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     String TAG = this.getClass().getSimpleName();
+
+
     final GregorianCalendar firstDay = new GregorianCalendar(2002, 11, 07, 21, 00, 00);
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -24,49 +29,48 @@ public class MainActivity extends AppCompatActivity {
     SQLiteHelper DBhelper;
     int lastWeekOfDB = 0;
     int currentWeek = getWeekNum();
-    int[][] NumBers;
+    static int[][] NumBers;
+    Fragment fr;
+
+    GregorianCalendar today;
+    GregorianCalendar startDay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 탭 구성
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
+
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+        TextView dateView = (TextView)findViewById(R.id.priod);
+
+
+        today = new GregorianCalendar(Locale.KOREA);
+        startDay = firstDay;
+        dateView.setText(dateToString(startDay) + " ~ " + dateToString(today));
+
 
         //DB 생성 및 최신화
         DBhelper = new SQLiteHelper(this);
         DBhelper.open();
         lastWeekOfDB = DBhelper.getLastWeek();
         Log.d(TAG, "Default week info is " + String.valueOf(lastWeekOfDB) + " / " + String.valueOf(currentWeek));
-
         updateList();
 
-
+        //Array생성
         int startWeek = 1;
         NumBers = makeArray(startWeek);
 
 
 
 
-
-
-
-
-
-        int[][] bestNum = getNum(1, 8);
-        int[][] bestBoNum = getNum(2, 2);
-        long avgParize = getPrize();
-
-
-        Log.d(TAG, String.valueOf(avgParize));
-
     }
-
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -76,20 +80,26 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            switch (position) {
-                case 1:
-                    return (Fragment) getFragmentManager().findFragmentById(R.id.container) ;
+            fr = new Fragment();
 
-                case 2:
-                    return new StatsFragment();
+            Bundle args = new Bundle();
+            args.putSerializable("Numbers", NumBers);
 
+            if(position == 1){
+                Log.d(TAG, "Stats Fragment Num : "+String.valueOf(position));
+                fr = new StatsFragment();
+                fr.setArguments(args);
+                return fr;
             }
-            return new StatsFragment();
+            Log.d(TAG, "Recommend Fragment Num : "+String.valueOf(position));
+            fr = new RecommendFragment();
+            fr.setArguments(args);
+            return fr;
+
         }
 
         @Override
         public int getCount() {
-
             return 2;
         }
 
@@ -134,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (lastWeekOfDB < currentWeek) {
+            //프로그래스바 생성
             callURL(++lastWeekOfDB);
         } else {
             Toast toast = Toast.makeText(this, "DB Update 완료.", Toast.LENGTH_LONG);
@@ -177,9 +188,9 @@ public class MainActivity extends AppCompatActivity {
     public int[][] makeArray(int startWeek) {
         int[][] numArray;
         numArray = DBhelper.getNumFrequency(startWeek, currentWeek);
-        for (int i = 0; i < 45; i++) {
-            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
-        }
+//        for (int i = 0; i < 45; i++) {
+//            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
+//        }
         return numArray;
     }
 
@@ -189,25 +200,11 @@ public class MainActivity extends AppCompatActivity {
         return prize;
     }
 
-    // 2중 배열에서 depthNum만큼의 상위 배열 만들기
-    public int[][] getNum(int row, int depthNum) {
-        int[][] temp = new int[depthNum][3];
-        for (int i = 0; i < NumBers.length; i++) {
-            for (int j = 0; j < temp.length; j++) {
-                if (NumBers[i][row] > temp[j][row]) {
-//                    Log.d(TAG, "Numbers is greater : " + String.valueOf(NumBers[i][row]) + " than " + String.valueOf(temp[j][row]));
-                    for (int t = depthNum - 1; t > j; t--) {
-                        temp[t] = temp[t - 1];
-//                        Log.d(TAG, "Shift : temp[" + (t - 1) + "](" + temp[t - 1][1] + ") to [" + t + "](" + temp[t][1] + ")");
-                    }
-//                    Log.d(TAG, "insert : Numbers[" + i + "](" + NumBers[i][1] + ") to temp[" + j + "](" + temp[j][1] + ")");
-                    temp[j] = NumBers[i];
-                    break;
-                }
-            }
-        }
-        return temp;
+    public String dateToString(GregorianCalendar cal)
+    {
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy년 MM월 dd일");
+        fmt.setCalendar(cal);
+        String dateStr = fmt.format(cal.getTime());
+        return  dateStr;
     }
-
-
 }
