@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
     SQLiteHelper DBhelper;
     int lastWeekOfDB = 0;
     int currentWeek = getWeekNum();
-    static int[][] NumBers;
     Fragment fr;
 
     GregorianCalendar today;
@@ -48,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        TextView dateView = (TextView)findViewById(R.id.priod);
+        TextView dateView = (TextView) findViewById(R.id.priod);
 
 
         today = new GregorianCalendar(Locale.KOREA);
@@ -63,17 +62,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Default week info is " + String.valueOf(lastWeekOfDB) + " / " + String.valueOf(currentWeek));
         updateList();
 
-        //Array생성
-        int startWeek = 1;
-        NumBers = makeArray(startWeek);
-
-
-
-
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -81,28 +72,24 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             fr = new Fragment();
-
             Bundle args = new Bundle();
-            args.putSerializable("Numbers", NumBers);
-
-            if(position == 1){
-                Log.d(TAG, "Stats Fragment Num : "+String.valueOf(position));
+            args.putInt("CurrentWeek", currentWeek);
+            args.putInt("StartWeek", getWeekNum(startDay));
+            if (position == 1) {
+                Log.d(TAG, "Stats Fragment Num : " + String.valueOf(position));
                 fr = new StatsFragment();
                 fr.setArguments(args);
                 return fr;
             }
-            Log.d(TAG, "Recommend Fragment Num : "+String.valueOf(position));
+            Log.d(TAG, "Recommend Fragment Num : " + String.valueOf(position));
             fr = new RecommendFragment();
             fr.setArguments(args);
             return fr;
-
         }
-
         @Override
         public int getCount() {
             return 2;
         }
-
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
@@ -122,11 +109,9 @@ public class MainActivity extends AppCompatActivity {
         Double w = (mis / (double) (36 * 24 * 100000 * 7));
         return w.intValue() + 1;
     }
-
     // 특정일 주차 정보
-    int getWeekNum(int year, int month, int day_of_month) {
-        GregorianCalendar pickDay = new GregorianCalendar(year, month, day_of_month, 21, 00, 00);
-        long mis = pickDay.getTimeInMillis() - firstDay.getTimeInMillis();
+    int getWeekNum(GregorianCalendar day) {
+        long mis = day.getTimeInMillis() - firstDay.getTimeInMillis();
         Double w = (mis / (double) (36 * 24 * 100000 * 7));
         int week = w.intValue();
         return week + 1;
@@ -184,13 +169,16 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    //{숫자, 횟수, 보너스 횟수}를 원소로 하는 배열 생성
-    public int[][] makeArray(int startWeek) {
+
+
+
+    //추천에서 이용할 어레이 생성 : fragment 1에서 호출
+    public int[][] getFrequentNums(int startWeek) {
         int[][] numArray;
         numArray = DBhelper.getNumFrequency(startWeek, currentWeek);
-//        for (int i = 0; i < 45; i++) {
-//            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
-//        }
+        for (int i = 0; i < 45; i++) {
+            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
+        }
         return numArray;
     }
 
@@ -200,11 +188,21 @@ public class MainActivity extends AppCompatActivity {
         return prize;
     }
 
-    public String dateToString(GregorianCalendar cal)
-    {
+    public String dateToString(GregorianCalendar cal) {
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy년 MM월 dd일");
         fmt.setCalendar(cal);
         String dateStr = fmt.format(cal.getTime());
-        return  dateStr;
+        return dateStr;
+    }
+
+    public int[][] makeArray(int startWeek, String[] columns) {
+        int[][] numArray;
+        numArray = DBhelper.getNumFrequency(startWeek, currentWeek, columns);
+//        for (int i = 0; i < 45; i++) {
+//            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
+//        }
+        return numArray;
     }
 }
+
+

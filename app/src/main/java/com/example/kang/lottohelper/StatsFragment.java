@@ -31,20 +31,8 @@ public class StatsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_stats, container, false);
         Log.d(TAG, "뷰 생성");
 
-
-
-
-
-
-
-        int[][] Arr = new int[54][3];
-        if (getArguments() != null) {
-            Arr = (int[][]) getArguments().getSerializable("Numbers");
-            Log.d(TAG, "데이터 전달 : " + Arr[0][1]);
-        }
-        return view;
-
+return view;
     }
+
+
 }
-
-

@@ -24,7 +24,6 @@ public class SQLiteHelper {
     private Context mCtx;
     public Cursor mCursor;
 
-
     private class dbOepnHelper extends SQLiteOpenHelper {
 
         public dbOepnHelper(Context context) {
@@ -60,11 +59,9 @@ public class SQLiteHelper {
         return this;
     }
 
-
     public void close() {
         mDB.close();
     }
-
 
     public int getLastWeek() {
         int result = 0;
@@ -115,7 +112,6 @@ public class SQLiteHelper {
 
     }
 
-
     public long addWeek(aWeekInfo weekInfo) {
 
         ContentValues values = new ContentValues();
@@ -140,6 +136,83 @@ public class SQLiteHelper {
 
 
     public int[][] getNumFrequency(int startWeek, int currentWeek) {
+
+        Log.d(TAG, "From " + startWeek + " to " + currentWeek);
+
+        int[][] temp = new int[45][5];
+        String[] mColumns = {"_id", "weekNum", "number1", "number2", "number3", "number4", "number5", "number6", "bonusNum", "firstWinnerPrize"};
+
+        String[] weekStr = {String.valueOf(startWeek - 1), String.valueOf(currentWeek + 1)};
+
+        try {
+            mCursor = this.query(tableName, mColumns, "? < weekNum and weekNum < ?", weekStr, null, null, null);
+            Log.d(TAG, "Select info cursor numbers is " + mCursor.getCount());
+
+            mCursor.moveToFirst();
+            Log.d(TAG, "First cursor = " + mCursor.getPosition());
+
+            for (int i = 0; i < 45; i++) {
+                temp[i][0] = i + 1;
+            }
+            while (!mCursor.isAfterLast()) {
+                for (int i = 1; i < 7; i++) {
+                    int t = mCursor.getInt(mCursor.getColumnIndex("number" + String.valueOf(i)));
+                    temp[t - 1][1] = temp[t - 1][1] + 1;
+                    temp[t - 1][2] = mCursor.getInt(mCursor.getColumnIndex("weekNum"));
+                }
+                int t = mCursor.getInt(mCursor.getColumnIndex("bonusNum"));
+                temp[t - 1][3] = temp[t - 1][3] + 1;
+                temp[t - 1][4] = mCursor.getInt(mCursor.getColumnIndex("weekNum"));
+
+                mCursor.moveToNext();
+            }
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+        return temp;
+    }
+
+
+    public long getPrize() {
+        long temp = 0;
+        try {
+            mCursor.moveToFirst();
+
+            while (!mCursor.isAfterLast()) {
+                temp = temp + mCursor.getLong(mCursor.getColumnIndex("firstWinnerPrize"));
+                mCursor.moveToNext();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (mCursor != null && mCursor.getCount() > 0)
+            temp = temp / mCursor.getCount();
+        mCursor.close();
+
+        return temp;
+
+    }
+
+
+    public Cursor query(String table, String[] columns, String selection,
+                        String[] selectionArgs, String groupBy, String having,
+                        String orderBy) {
+        Cursor cursor = null;
+
+        try {
+
+            cursor = mDB.query(table, columns, selection, selectionArgs,
+                    groupBy, having, orderBy);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return cursor;
+    }
+
+    public int[][] getNumFrequency(int startWeek, int currentWeek, String[] columns) {
 
         Log.d(TAG, "From " + startWeek + " to " + currentWeek);
 
@@ -176,46 +249,4 @@ public class SQLiteHelper {
         }
         return temp;
     }
-
-
-    public long getPrize() {
-        long temp=0;
-        try{
-            mCursor.moveToFirst();
-
-            while (!mCursor.isAfterLast()) {
-                temp = temp + mCursor.getLong(mCursor.getColumnIndex("firstWinnerPrize"));
-                mCursor.moveToNext();
-            }
-            }catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-if(mCursor != null && mCursor.getCount() > 0)
-        temp = temp/mCursor.getCount();
-        mCursor.close();
-
-        return temp;
-
-    }
-
-
-    public Cursor query(String table, String[] columns, String selection,
-                        String[] selectionArgs, String groupBy, String having,
-                        String orderBy) {
-        Cursor cursor = null;
-
-        try {
-
-            cursor = mDB.query(table, columns, selection, selectionArgs,
-                    groupBy, having, orderBy);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return cursor;
-    }
-
-
 }
