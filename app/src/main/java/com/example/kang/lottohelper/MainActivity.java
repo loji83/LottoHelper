@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         today = new GregorianCalendar(Locale.KOREA);
         startDay = firstDay;
-        dateView.setText(dateToString(startDay) + " ~ " + dateToString(today));
+        dateView.setText(dateToString(startDay) + "   ~   " + dateToString(today));
 
 
         //DB 생성 및 최신화
@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-
 
     // 현재 주차 정보
     int getWeekNum() {
