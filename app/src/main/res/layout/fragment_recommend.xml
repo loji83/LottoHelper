@@ -76,34 +76,18 @@
             style="@style/NumberView" />
 
         <TextView
-            style="@style/NumberView"
-            android:layout_width="0dp"
-            android:layout_height="match_parent" />
-
+            style="@style/SpaceView"/>
         <TextView
-            style="@style/NumberView"
-            android:layout_width="0dp"
-            android:layout_height="match_parent" />
-
+            style="@style/SpaceView"/>
         <TextView
-            style="@style/NumberView"
-            android:layout_width="0dp"
-            android:layout_height="match_parent" />
-
+            style="@style/SpaceView"/>
         <TextView
-            style="@style/NumberView"
-            android:layout_width="0dp"
-            android:layout_height="match_parent" />
-
+            style="@style/SpaceView"/>
         <TextView
-            style="@style/NumberView"
-            android:layout_width="0dp"
-            android:layout_height="match_parent" />
-
+            style="@style/SpaceView"/>
         <TextView
             android:id="@+id/addBoNumber1"
             style="@style/NumberView" />
-
 
     </LinearLayout>
 

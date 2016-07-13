@@ -67,12 +67,7 @@ public class RecommendFragment extends Fragment {
         setNumber(addNumber2, bestNum[7][0]);
         setNumber(addBoNumber1, bestBoNum[1][0]);
 
-
-
-
-
         return view;
-
     }
 
     public int[][] gethighPointsNum(int[][] Arr, int row, int depthNum) {
@@ -205,6 +200,7 @@ public class RecommendFragment extends Fragment {
         textView.setText(String.valueOf(number));
 
     }
+
 
 }
 

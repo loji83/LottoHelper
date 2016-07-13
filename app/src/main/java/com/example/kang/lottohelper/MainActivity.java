@@ -2,6 +2,7 @@ package com.example.kang.lottohelper;
 
 import android.app.DatePickerDialog;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.app.Fragment;
@@ -75,21 +76,31 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        dateView.setText(dateToString(startDay) + "   ~   " + dateToString(today));
+        setTimeText(dateView, startDay);
 
     }
 
-
+    public void setTimeText(TextView tv, GregorianCalendar day)
+    {
+        tv.setText(dateToString(day) + "   ~   " + dateToString(today));
+    }
 
 
     DatePickerDialog.OnDateSetListener mOndateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            startDay.set(year, monthOfYear, dayOfMonth);
-            Log.d(TAG, "new Start time = " + dateToString(startDay));
-            dateView.setText(dateToString(startDay) + "   ~   " + dateToString(today));
-        }
+            GregorianCalendar tempDate = new GregorianCalendar(year, monthOfYear, dayOfMonth);
+            if(tempDate.after(firstDay)) {
+                startDay.set(year, monthOfYear, dayOfMonth);
+                Log.d(TAG, "new Start time = " + dateToString(startDay));
+                setTimeText(dateView, startDay);
+            }else
+            {
+                Toast toast = Toast.makeText(MainActivity.this, "1회 추첨일 이전 날짜는 선택할 수 없습니다", Toast.LENGTH_SHORT);
+                toast.show();
+            }
 
+        }
     };
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
