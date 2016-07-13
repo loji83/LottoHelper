@@ -1,8 +1,8 @@
 package com.example.kang.lottohelper;
 
+import android.app.DatePickerDialog;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
-
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -10,21 +10,26 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     String TAG = this.getClass().getSimpleName();
 
-
     final GregorianCalendar firstDay = new GregorianCalendar(2002, 11, 07, 21, 00, 00);
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
+
+    TextView dateView;
 
     SQLiteHelper DBhelper;
     int lastWeekOfDB = 0;
@@ -47,13 +52,11 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        TextView dateView = (TextView) findViewById(R.id.priod);
+        Button dateButton = (Button) findViewById(R.id.dateButton);
+        dateView = (TextView) findViewById(R.id.priod);
 
-
-        today = new GregorianCalendar(Locale.KOREA);
         startDay = firstDay;
-        dateView.setText(dateToString(startDay) + "   ~   " + dateToString(today));
-
+        today = new GregorianCalendar(Locale.KOREA);
 
         //DB 생성 및 최신화
         DBhelper = new SQLiteHelper(this);
@@ -62,7 +65,32 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Default week info is " + String.valueOf(lastWeekOfDB) + " / " + String.valueOf(currentWeek));
         updateList();
 
+        dateButton.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                DatePickerDialog startdayPicker = new DatePickerDialog(MainActivity.this, mOndateSetListener, firstDay.get(Calendar.YEAR), firstDay.get(Calendar.MONTH), firstDay.get(Calendar.DAY_OF_MONTH));
+                startdayPicker.show();
+            }
+
+        });
+
+
+
+        dateView.setText(dateToString(startDay) + "   ~   " + dateToString(today));
+
     }
+
+
+
+
+    DatePickerDialog.OnDateSetListener mOndateSetListener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            startDay.set(year, monthOfYear, dayOfMonth);
+            Log.d(TAG, "new Start time = " + dateToString(startDay));
+            dateView.setText(dateToString(startDay) + "   ~   " + dateToString(today));
+        }
+
+    };
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -86,10 +114,12 @@ public class MainActivity extends AppCompatActivity {
             fr.setArguments(args);
             return fr;
         }
+
         @Override
         public int getCount() {
             return 2;
         }
+
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
@@ -108,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
         Double w = (mis / (double) (36 * 24 * 100000 * 7));
         return w.intValue() + 1;
     }
+
     // 특정일 주차 정보
     int getWeekNum(GregorianCalendar day) {
         long mis = day.getTimeInMillis() - firstDay.getTimeInMillis();
@@ -140,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     //로또 통계 서버 조회
     public void callURL(int i) {
         Log.d(TAG, "request week info of " + String.valueOf(i));
@@ -167,8 +197,6 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
         }
     };
-
-
 
 
     //추천에서 이용할 어레이 생성 : fragment 1에서 호출

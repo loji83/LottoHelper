@@ -1,72 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffff00">
+    android:orientation="vertical">
 
     <TextView
-        android:id="@+id/recoNums"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-       />
+        style="@style/MiddleMenu"
+        android:text="추천 번호" />
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:weightSum="8"
-        android:orientation="horizontal">
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:weightSum="8">
+
 
         <TextView
             android:id="@+id/number1"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            style="@style/NumberView" />
+
         <TextView
             android:id="@+id/number2"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            style="@style/NumberView" />
+
         <TextView
             android:id="@+id/number3"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            style="@style/NumberView" />
+
         <TextView
             android:id="@+id/number4"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            style="@style/NumberView" />
+
         <TextView
             android:id="@+id/number5"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            style="@style/NumberView" />
+
         <TextView
             android:id="@+id/number6"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            style="@style/NumberView" />
+
         <TextView
-            android:id="@+id/number"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            style="@style/NumberView"
+            android:text="+"
+            android:textColor="#000000" />
+
         <TextView
             android:id="@+id/boNumber1"
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-
-
-
-
+            style="@style/NumberView" />
 
     </LinearLayout>
 
+
     <TextView
-        android:id="@+id/highNums"
+        style="@style/MiddleMenu"
+        android:text="추가 번호"/>
+
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:weightSum="8">
+
+        <TextView
+            android:id="@+id/addNumber1"
+            style="@style/NumberView" />
+
+        <TextView
+            android:id="@+id/addNumber2"
+            style="@style/NumberView" />
+
+        <TextView
+            style="@style/NumberView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            style="@style/NumberView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            style="@style/NumberView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            style="@style/NumberView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            style="@style/NumberView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/addBoNumber1"
+            style="@style/NumberView" />
+
+
+    </LinearLayout>
 
 </LinearLayout>

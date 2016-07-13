@@ -1,5 +1,7 @@
 package com.example.kang.lottohelper;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,12 +23,6 @@ public class RecommendFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-
-
-
-
     }
 
     @Override
@@ -43,6 +39,10 @@ public class RecommendFragment extends Fragment {
         TextView number6 = (TextView) view.findViewById(R.id.number6);
         TextView boNumber1 = (TextView) view.findViewById(R.id.boNumber1);
 
+        TextView addNumber1 = (TextView) view.findViewById(R.id.addNumber1);
+        TextView addNumber2 = (TextView) view.findViewById(R.id.addNumber2);
+        TextView addBoNumber1 = (TextView) view.findViewById(R.id.addBoNumber1);
+
 
         int startWeek = getArguments().getInt("StartWeek");
         int currentWeek = getArguments().getInt("CurrentWeek");
@@ -55,13 +55,20 @@ public class RecommendFragment extends Fragment {
         int[][] bestNum = gethighPointsNum(Arr, 3, 8);
         int[][] bestBoNum = gethighPointsNum(Arr, 3, 2);
 
-        number1.setText(String.valueOf(bestNum[0][0]));
-        number2.setText(String.valueOf(bestNum[1][0]));
-        number3.setText(String.valueOf(bestNum[2][0]));
-        number4.setText(String.valueOf(bestNum[3][0]));
-        number5.setText(String.valueOf(bestNum[4][0]));
-        number6.setText(String.valueOf(bestNum[5][0]));
-        boNumber1.setText(String.valueOf(bestBoNum[0][0]));
+        setNumber(number1, bestNum[0][0]);
+        setNumber(number2, bestNum[1][0]);
+        setNumber(number3, bestNum[2][0]);
+        setNumber(number4, bestNum[3][0]);
+        setNumber(number5, bestNum[4][0]);
+        setNumber(number6, bestNum[5][0]);
+        setNumber(boNumber1, bestBoNum[0][0]);
+
+        setNumber(addNumber1, bestNum[6][0]);
+        setNumber(addNumber2, bestNum[7][0]);
+        setNumber(addBoNumber1, bestBoNum[1][0]);
+
+
+
 
 
         return view;
@@ -168,6 +175,35 @@ public class RecommendFragment extends Fragment {
         }
 
         return temp;
+    }
+
+    void setNumber(TextView textView, int number)
+    {
+        int color = Color.WHITE;
+        switch ((number-1)/10)
+        {
+            case 0 :
+                color = Color.rgb(230, 230, 20);  //yellow
+                break;
+            case 1 :
+                color = Color.BLUE;   //blue
+                break;
+            case 2 :
+                color = Color.rgb(204, 0, 0);   //red
+                break;
+            case 3 :
+                color = Color.BLACK;  //black
+                break;
+            case 4 :
+                color = Color.rgb(000,153,51);   //green
+                break;
+            default:
+                Log.d(TAG, "Wrong number");
+        }
+        Log.d(TAG, "number = " + number +" / color = " + color);
+        ((GradientDrawable)textView.getBackground()).setColor(color);
+        textView.setText(String.valueOf(number));
+
     }
 
 }
