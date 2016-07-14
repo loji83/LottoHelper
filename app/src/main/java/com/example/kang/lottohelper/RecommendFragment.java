@@ -20,16 +20,31 @@ public class RecommendFragment extends Fragment {
     String TAG = this.getClass().getSimpleName();
 
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public static RecommendFragment newInstance(int week, int current) {
+        String TAG = "newInstance";
+
+        Bundle args = new Bundle();
+        args.putInt("StartWeek", week);
+        args.putInt("CurrentWeek", current);
+        RecommendFragment fragment = new RecommendFragment();
+        fragment.setArguments(args);
+        Log.e(TAG, "restart fragment with week : " + week);
+        return fragment;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_recommend, container, false);
-        Log.d(TAG, "View 생성");
+
+        int startWeek = getArguments().getInt("StartWeek");
+        int currentWeek = getArguments().getInt("CurrentWeek");
+
+        Log.d(TAG, "View 생성 with : " + startWeek + " ~ " + currentWeek);
+
+        int[][] rowArr = ((MainActivity) getActivity()).getFrequentNums(startWeek);
+        int[][] Arr = makePoints(rowArr, startWeek, currentWeek);
+        int[][] bestNum = gethighPointsNum(Arr, 3, 8);
+        int[][] bestBoNum = gethighPointsNum(Arr, 3, 2);
 
         TextView number1 = (TextView) view.findViewById(R.id.number1);
         TextView number2 = (TextView) view.findViewById(R.id.number2);
@@ -42,18 +57,6 @@ public class RecommendFragment extends Fragment {
         TextView addNumber1 = (TextView) view.findViewById(R.id.addNumber1);
         TextView addNumber2 = (TextView) view.findViewById(R.id.addNumber2);
         TextView addBoNumber1 = (TextView) view.findViewById(R.id.addBoNumber1);
-
-
-        int startWeek = getArguments().getInt("StartWeek");
-        int currentWeek = getArguments().getInt("CurrentWeek");
-
-        int[][] rowArr = ((MainActivity) getActivity()).getFrequentNums(startWeek);
-
-        int[][] Arr = makePoints(rowArr, startWeek, currentWeek);
-
-
-        int[][] bestNum = gethighPointsNum(Arr, 3, 8);
-        int[][] bestBoNum = gethighPointsNum(Arr, 3, 2);
 
         setNumber(number1, bestNum[0][0]);
         setNumber(number2, bestNum[1][0]);
@@ -69,6 +72,7 @@ public class RecommendFragment extends Fragment {
 
         return view;
     }
+
 
     public int[][] gethighPointsNum(int[][] Arr, int row, int depthNum) {
 
@@ -121,6 +125,7 @@ public class RecommendFragment extends Fragment {
         double avgBoPick = weekNum / 45;
         double avgBoWeek = 45;
 
+
         //분산
         for (int i = 0; i < 45; i++) {
             tempA = tempA + (int) Math.pow((avgPick - rowArr[i][1]), 2);
@@ -132,73 +137,87 @@ public class RecommendFragment extends Fragment {
         //편차
         numV = tempA / 45;
         weekV = tempB / 45;
-        Log.d(TAG, "sum of V^2 and V = " + tempA + ", " + tempB + " / " + numV + ", " + weekV);
+        Log.d(TAG, "sum of V and V = " + tempA + ", " + numV + " / " + tempB + ", " + weekV);
 
         //표준편차
         numDeviation = Math.sqrt(numV);
         weekDeviation = Math.sqrt(weekV);
-        Log.d(TAG, "Deviation : " + numDeviation + ", " + weekDeviation);
+        Log.d(TAG, "Deviation        : " + numDeviation + ", " + weekDeviation);
 
         //편차
         numBoV = tempC / 45;
         weekBoV = tempD / 45;
-        Log.d(TAG, "sum of V^2 and V = " + tempC + ", " + tempD + " / " + numBoV + ", " + weekBoV);
+//        Log.d(TAG, "sum of V^2 and V = " + tempC + ", " + tempD + " / " + numBoV + ", " + weekBoV);
 
         //표준편차
         numBoDeviation = Math.sqrt(numBoV);
         weekBoDeviation = Math.sqrt(weekBoV);
-        Log.d(TAG, "Deviation : " + numBoDeviation + ", " + weekBoDeviation);
+//        Log.d(TAG, "Deviation          : " + numBoDeviation + ", " + weekBoDeviation);
+
 
         for (int i = 0; i < 45; i++) {
-            temp[i][0] = rowArr[i][0];
-            temp[i][1] = rowArr[i][1];
-            temp[i][2] = rowArr[i][2];
-            prePoint = ((avgPick - rowArr[i][1]) / numDeviation + (current - rowArr[i][2] + 1 - avgWeek) / weekDeviation) * 100;
+            temp[i][0] = rowArr[i][0];  // 수 입력
+
+            temp[i][1] = rowArr[i][1];  // 횟수 입력
+
+            if (rowArr[i][2] != 0) {      // 주차 입력(0은 현재 주 - 1)
+                temp[i][2] = rowArr[i][2];
+            } else {
+                temp[i][2] = start - 1;
+            }
+
+            prePoint = ((avgPick - rowArr[i][1]) / numDeviation + (current - rowArr[i][2] + 1 - avgWeek) / weekDeviation) * 10000;
             point = (int) prePoint;
             temp[i][3] = point;
             Log.d(TAG, "[number : " + (i + 1) + "]");
-            Log.d(TAG, "times = " + temp[i][1] + ", timesPoint = " + (avgPick - rowArr[i][1]) + ", last week = " + temp[i][2] + ", weekPoint = " + (((current - rowArr[i][2]) + 1) - avgWeek));
-            Log.d(TAG, "Total point is " + temp[i][3]);
+            Log.d(TAG, "    횟수  = " + temp[i][1] + ", " + rowArr[i][1] + " / " + ((avgPick - rowArr[i][1]) / numDeviation));
+            Log.d(TAG, "    주차  = " + temp[i][2] + ", " + rowArr[i][2] + " / " + ((current - rowArr[i][2] + 1 - avgWeek) / weekDeviation));
+            Log.d(TAG, "    점수  = " + prePoint + " = " + ((avgPick - rowArr[i][1]) / numDeviation) + " + " + ((current - rowArr[i][2] + 1 - avgWeek) / weekDeviation));
+
 
             temp[i][4] = rowArr[i][3];
-            temp[i][5] = rowArr[i][4];
-            prePoint = ((avgBoPick - rowArr[i][3]) / numDeviation + (current - rowArr[i][4] + 1 - avgBoWeek) / weekBoDeviation) * 100;
+            if (rowArr[i][4] != 0) {
+                temp[i][5] = rowArr[i][4];
+            } else {
+                temp[i][5] = start - 1;
+            }
+            prePoint = ((avgBoPick - rowArr[i][3]) / numBoDeviation + (current - rowArr[i][4] + 1 - avgBoWeek) / weekBoDeviation) * 10000;
             point = (int) prePoint;
             temp[i][6] = point;
-            Log.d(TAG, "Bo times = " + temp[i][3] + ", timesPoint = " + (avgPick - rowArr[i][3]) + ", last week = " + temp[i][4] + ", weekPoint = " + (((current - rowArr[i][4]) + 1) - avgWeek));
-            Log.d(TAG, "Bo Total point is " + temp[i][6]);
+
+//            Log.d(TAG, "    횟수  = " + temp[i][4] + ", " + rowArr[i][3] + " / " + ((avgPick - rowArr[i][3]) / numDeviation));
+//            Log.d(TAG, "    주차  = " + temp[i][5] + ", " + rowArr[i][4] + " / " + ((current - rowArr[i][4] + 1 - avgWeek) / weekDeviation));
+//            Log.d(TAG, "    점수  = " + prePoint + " = " + ((avgPick - rowArr[i][3]) / numDeviation) + " + " + ((current - rowArr[i][4] + 1 - avgWeek) / weekDeviation));
+
         }
 
         return temp;
     }
 
-    void setNumber(TextView textView, int number)
-    {
+    void setNumber(TextView textView, int number) {
         int color = Color.WHITE;
-        switch ((number-1)/10)
-        {
-            case 0 :
+        switch ((number - 1) / 10) {
+            case 0:
                 color = Color.rgb(230, 230, 20);  //yellow
                 break;
-            case 1 :
+            case 1:
                 color = Color.BLUE;   //blue
                 break;
-            case 2 :
+            case 2:
                 color = Color.rgb(204, 0, 0);   //red
                 break;
-            case 3 :
+            case 3:
                 color = Color.BLACK;  //black
                 break;
-            case 4 :
-                color = Color.rgb(000,153,51);   //green
+            case 4:
+                color = Color.rgb(000, 153, 51);   //green
                 break;
             default:
                 Log.d(TAG, "Wrong number");
         }
-        Log.d(TAG, "number = " + number +" / color = " + color);
-        ((GradientDrawable)textView.getBackground()).setColor(color);
+//        Log.d(TAG, "number = " + number + " / color = " + color);
+        ((GradientDrawable) textView.getBackground()).setColor(color);
         textView.setText(String.valueOf(number));
-
     }
 
 

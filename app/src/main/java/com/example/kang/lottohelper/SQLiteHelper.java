@@ -25,7 +25,6 @@ public class SQLiteHelper {
     public Cursor mCursor;
 
     private class dbOepnHelper extends SQLiteOpenHelper {
-
         public dbOepnHelper(Context context) {
             super(context, dbName, null, 1);
             Log.d(TAG, "DB helper created : " + dbName);
@@ -55,7 +54,6 @@ public class SQLiteHelper {
         mDBHelper = new dbOepnHelper(mCtx);
         mDB = mDBHelper.getWritableDatabase();
         Log.d(TAG, "DB created or open : " + mDB.toString());
-
         return this;
     }
 
@@ -67,11 +65,12 @@ public class SQLiteHelper {
         int result = 0;
         try {
             mCursor = this.query(tableName, null, null, null, null, null, "weekNum");
-            Log.d(TAG, "Last week Cursor Position : " + String.valueOf(mCursor.getPosition()) + " / " + String.valueOf(mCursor.getCount()));
             mCursor.moveToLast();
             if (mCursor != null && mCursor.getPosition() > 0) {
                 result = mCursor.getInt(mCursor.getColumnIndex("weekNum"));
             }
+            Log.d(TAG, "Last week Cursor Position : " + result + "(" + String.valueOf(mCursor.getPosition()) + " / " + String.valueOf(mCursor.getCount()) + ")");
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

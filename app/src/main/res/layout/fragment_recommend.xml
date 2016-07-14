@@ -43,7 +43,13 @@
             style="@style/NumberView" />
 
         <TextView
-            style="@style/NumberView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="15dp"
+            android:layout_margin="5dp"
+            android:padding="5dp"
+            android:layout_weight="1"
             android:text="+"
             android:textColor="#000000" />
 

@@ -26,82 +26,84 @@ public class MainActivity extends AppCompatActivity {
     String TAG = this.getClass().getSimpleName();
 
     final GregorianCalendar firstDay = new GregorianCalendar(2002, 11, 07, 21, 00, 00);
+    GregorianCalendar today;
+    GregorianCalendar startDay;
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
 
     TextView dateView;
+    Button dateButton;
+    Button resetButton;
 
     SQLiteHelper DBhelper;
-    int lastWeekOfDB = 0;
-    int currentWeek = getWeekNum();
-    Fragment fr;
-
-    GregorianCalendar today;
-    GregorianCalendar startDay;
+    int lastWeekOfDB;
+    int currentWeek;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
+        //화면 요소 로딩
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        Button dateButton = (Button) findViewById(R.id.dateButton);
+        dateButton = (Button) findViewById(R.id.dateButton);
+        resetButton = (Button) findViewById(R.id.resetButton);
         dateView = (TextView) findViewById(R.id.priod);
 
-        startDay = firstDay;
+        // 날짜 출력
         today = new GregorianCalendar(Locale.KOREA);
+        startDay = new GregorianCalendar(firstDay.get(Calendar.YEAR), firstDay.get(Calendar.MONTH), firstDay.get(Calendar.DAY_OF_MONTH));
+        setTimeText(dateButton, startDay);
+        dateView.setText(dateToString(today));
+
 
         //DB 생성 및 최신화
         DBhelper = new SQLiteHelper(this);
         DBhelper.open();
+        currentWeek = getWeekNum(today);
         lastWeekOfDB = DBhelper.getLastWeek();
         Log.d(TAG, "Default week info is " + String.valueOf(lastWeekOfDB) + " / " + String.valueOf(currentWeek));
-        updateList();
 
-        dateButton.setOnClickListener(new Button.OnClickListener() {
+        if (lastWeekOfDB < currentWeek) {
+            updateList();
+        }
+
+        //페이지 뷰 생성
+
+
+        resetButton.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                DatePickerDialog startdayPicker = new DatePickerDialog(MainActivity.this, mOndateSetListener, firstDay.get(Calendar.YEAR), firstDay.get(Calendar.MONTH), firstDay.get(Calendar.DAY_OF_MONTH));
-                startdayPicker.show();
+                startDay.set(firstDay.get(Calendar.YEAR), firstDay.get(Calendar.MONTH), firstDay.get(Calendar.DAY_OF_MONTH));
+
+                setTimeText(dateButton, startDay);
+                Fragment fr = RecommendFragment.newInstance(getWeekNum(startDay), currentWeek);
+                FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
+                tr.replace(R.id.container, fr);
+                tr.commit();
+                mSectionsPagerAdapter.notifyDataSetChanged();
+                mViewPager.refreshDrawableState();
+
             }
 
         });
 
-
-
-        setTimeText(dateView, startDay);
-
-    }
-
-    public void setTimeText(TextView tv, GregorianCalendar day)
-    {
-        tv.setText(dateToString(day) + "   ~   " + dateToString(today));
-    }
-
-
-    DatePickerDialog.OnDateSetListener mOndateSetListener = new DatePickerDialog.OnDateSetListener() {
-        @Override
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            GregorianCalendar tempDate = new GregorianCalendar(year, monthOfYear, dayOfMonth);
-            if(tempDate.after(firstDay)) {
-                startDay.set(year, monthOfYear, dayOfMonth);
-                Log.d(TAG, "new Start time = " + dateToString(startDay));
-                setTimeText(dateView, startDay);
-            }else
-            {
-                Toast toast = Toast.makeText(MainActivity.this, "1회 추첨일 이전 날짜는 선택할 수 없습니다", Toast.LENGTH_SHORT);
-                toast.show();
+        //버튼 리스너 - date pickup 실행
+        dateButton.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                DatePickerDialog startdayPicker = new DatePickerDialog(MainActivity.this, mOndateSetListener, startDay.get(Calendar.YEAR), startDay.get(Calendar.MONTH), startDay.get(Calendar.DAY_OF_MONTH));
+                startdayPicker.show();
             }
 
-        }
-    };
+        });
+    }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -110,18 +112,18 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            fr = new Fragment();
+            Fragment fr;
             Bundle args = new Bundle();
             args.putInt("CurrentWeek", currentWeek);
             args.putInt("StartWeek", getWeekNum(startDay));
             if (position == 1) {
-                Log.d(TAG, "Stats Fragment Num : " + String.valueOf(position));
                 fr = new StatsFragment();
-                fr.setArguments(args);
+                Log.d(TAG, "Stats Fragment Num : " + String.valueOf(position));
                 return fr;
+            } else {
+                Log.d(TAG, "Recommend Fragment Num : " + String.valueOf(position));
+                fr = new RecommendFragment();
             }
-            Log.d(TAG, "Recommend Fragment Num : " + String.valueOf(position));
-            fr = new RecommendFragment();
             fr.setArguments(args);
             return fr;
         }
@@ -140,27 +142,63 @@ public class MainActivity extends AppCompatActivity {
                     return "통계";
             }
             return null;
+
+        }
+
+        @Override
+        public int getItemPosition(Object obj) {
+            return POSITION_NONE;
         }
     }
 
-    // 현재 주차 정보
-    int getWeekNum() {
-        long mis = System.currentTimeMillis() - firstDay.getTimeInMillis();
-        Double w = (mis / (double) (36 * 24 * 100000 * 7));
-        return w.intValue() + 1;
-    }
+
+    DatePickerDialog.OnDateSetListener mOndateSetListener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            startDay = new GregorianCalendar(year, monthOfYear, dayOfMonth);
+
+            GregorianCalendar compareDate = new GregorianCalendar(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH));
+            compareDate.add(Calendar.YEAR, -1);
+
+            if (startDay.before(firstDay)) {
+                Toast toast = Toast.makeText(MainActivity.this, "1회 추첨일 부터 계산합니다.", Toast.LENGTH_SHORT);
+                toast.show();
+            } else if (startDay.after(compareDate)) {
+                Toast toast = Toast.makeText(MainActivity.this, "최소 1년 이상의 DB가 필요합니다", Toast.LENGTH_SHORT);
+                toast.show();
+            } else {
+
+                Log.d(TAG, "StartDay = " + dateToString(startDay));
+
+                setTimeText(dateButton, startDay);
+                Fragment fr = RecommendFragment.newInstance(getWeekNum(startDay), currentWeek);
+                FragmentTransaction tr = getSupportFragmentManager().beginTransaction();
+                tr.replace(R.id.container, fr);
+                tr.commit();
+
+                mSectionsPagerAdapter.notifyDataSetChanged();
+                mViewPager.refreshDrawableState();
+            }
+        }
+    };
+
 
     // 특정일 주차 정보
     int getWeekNum(GregorianCalendar day) {
+        Log.d(TAG, "Day is " + dateToString(day));
+        Log.d(TAG, "Day : " + day.getTimeInMillis() + " / firstDay : " + firstDay.getTimeInMillis());
         long mis = day.getTimeInMillis() - firstDay.getTimeInMillis();
+
         Double w = (mis / (double) (36 * 24 * 100000 * 7));
         int week = w.intValue();
+
+        Log.d(TAG, String.valueOf(mis) + " / " + String.valueOf(w) + " / " + String.valueOf(week));
         return week + 1;
     }
 
     //리스트 최신화
     public void updateList() {
-        Log.d(TAG, "Updating " + lastWeekOfDB + "th week");
+
         if (lastWeekOfDB == 0) {
             Toast toast = Toast.makeText(this, "초기 DB 구축이 필요합니다. 잠시만 기다려 주시기 바랍니다.", Toast.LENGTH_LONG);
             toast.show();
@@ -169,23 +207,22 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
         }
 
-        if (lastWeekOfDB < currentWeek) {
-            //프로그래스바 생성
-            callURL(++lastWeekOfDB);
-        } else {
-            Toast toast = Toast.makeText(this, "DB Update 완료.", Toast.LENGTH_LONG);
-            toast.show();
-            Log.d(TAG, "List was updated");
-            return;
-        }
+        Log.d(TAG, "Updating " + lastWeekOfDB + "th week");
+
+        callURL(++lastWeekOfDB);
+
+        Toast toast = Toast.makeText(this, "DB Update 완료.", Toast.LENGTH_LONG);
+        toast.show();
+        Log.d(TAG, "List was updated");
+
         Log.d(TAG, lastWeekOfDB + "th week Complete");
 
     }
 
     //로또 통계 서버 조회
-    public void callURL(int i) {
-        Log.d(TAG, "request week info of " + String.valueOf(i));
-        Communicator res = new Communicator("http://www.nlotto.co.kr/common.do?method=getLottoNumber&drwNo=" + String.valueOf(i), null, listener);
+    public void callURL(int week) {
+        Log.d(TAG, "request week info of " + String.valueOf(week));
+        Communicator res = new Communicator("http://www.nlotto.co.kr/common.do?method=getLottoNumber&drwNo=" + String.valueOf(week), null, listener);
         res.sendData();
     }
 
@@ -209,22 +246,32 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
     //추천에서 이용할 어레이 생성 : fragment 1에서 호출
     public int[][] getFrequentNums(int startWeek) {
         int[][] numArray;
         numArray = DBhelper.getNumFrequency(startWeek, currentWeek);
-        for (int i = 0; i < 45; i++) {
-            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
-        }
+        Log.d(TAG, "GetNumFrequency with : " + startWeek);
+//        for (int i = 0; i < 45; i++) {
+//            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
+//        }
         return numArray;
     }
 
-    // 상금 평균
-    public long getPrize() {
-        long prize = DBhelper.getPrize();
-        return prize;
-    }
+// 상금 평균
+//    public long getPrize() {
+//        long prize = DBhelper.getPrize();
+//        return prize;
+//    }
+
+
+//    public int[][] makeArray(int startWeek, String[] columns) {
+//        int[][] numArray;
+//        numArray = DBhelper.getNumFrequency(startWeek, currentWeek, columns);
+////        for (int i = 0; i < 45; i++) {
+////            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
+////        }
+//        return numArray;
+//    }
 
     public String dateToString(GregorianCalendar cal) {
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy년 MM월 dd일");
@@ -233,14 +280,10 @@ public class MainActivity extends AppCompatActivity {
         return dateStr;
     }
 
-    public int[][] makeArray(int startWeek, String[] columns) {
-        int[][] numArray;
-        numArray = DBhelper.getNumFrequency(startWeek, currentWeek, columns);
-//        for (int i = 0; i < 45; i++) {
-//            Log.d(TAG, "num : " + numArray[i][0] + " / " + numArray[i][1]);
-//        }
-        return numArray;
+    public void setTimeText(Button tv, GregorianCalendar day) {
+        tv.setText(dateToString(day));
     }
+
 }
 
 
